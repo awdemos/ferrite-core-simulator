@@ -1,0 +1,6 @@
+node_modules/
+package*.json
+take-screenshot.js
+test-interactive.js
+test_core.js
+simulator-*.png

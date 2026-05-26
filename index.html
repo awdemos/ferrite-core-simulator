@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ferrite Core Memory Simulator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Ferrite Core Memory Simulator</h1>
+      <p class="subtitle">Interactive simulation of magnetic core memory technology (1950s-1970s)</p>
+    </header>
+
+    <main>
+      <div class="simulation-area">
+        <div class="controls-panel">
+          <div class="mode-selector">
+            <label>Operation Mode:</label>
+            <div class="mode-buttons">
+              <button class="mode-btn active" data-mode="read">Read</button>
+              <button class="mode-btn" data-mode="write0">Write 0</button>
+              <button class="mode-btn" data-mode="write1">Write 1</button>
+            </div>
+          </div>
+          
+          <div class="action-buttons">
+            <button id="btn-reset" class="action-btn">Reset All</button>
+            <button id="btn-randomize" class="action-btn">Randomize</button>
+            <button id="btn-step" class="action-btn" disabled>Step</button>
+          </div>
+
+          <div class="animation-controls">
+            <label for="animation-speed">Animation Speed:</label>
+            <input type="range" id="animation-speed" min="100" max="2000" value="800" step="100">
+            <span id="speed-display">800ms</span>
+          </div>
+        </div>
+
+        <div class="memory-grid-container">
+          <svg id="memory-grid" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <filter id="glow-0" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="2" result="blur"/>
+                <feMerge>
+                  <feMergeNode in="blur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+              <filter id="glow-1" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="4" result="blur"/>
+                <feMerge>
+                  <feMergeNode in="blur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+              <filter id="glow-active" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="6" result="blur"/>
+                <feMerge>
+                  <feMergeNode in="blur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            
+            <g id="wires-layer"></g>
+            <g id="cores-layer"></g>
+            <g id="current-layer"></g>
+            <g id="labels-layer"></g>
+          </svg>
+          <div id="core-tooltip" class="core-tooltip hidden">
+            <div class="tooltip-coords"></div>
+            <div class="tooltip-state"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-panels">
+        <div class="panel historical-arch">
+          <h3>Historical Architecture</h3>
+          <select id="arch-preset" class="arch-select">
+            <option value="custom">Custom Configuration</option>
+            <option value="agc">Apollo Guidance Computer (1966)</option>
+            <option value="whirlwind">Whirlwind I (1953)</option>
+            <option value="ibm704">IBM 704 (1954)</option>
+            <option value="pdp1">DEC PDP-1 (1960)</option>
+            <option value="cdc6600">CDC 6600 (1964)</option>
+            <option value="univac1107">UNIVAC 1107 (1962)</option>
+            <option value="ibm360">IBM System/360 (1964)</option>
+            <option value="tx2">MIT TX-2 (1958)</option>
+          </select>
+          <div id="arch-details" class="arch-details"></div>
+        </div>
+
+        <div class="panel grid-config">
+          <h3>Grid Configuration</h3>
+          <div class="config-row">
+            <label>Width:</label>
+            <input type="number" id="grid-width" min="2" max="16" value="8">
+          </div>
+          <div class="config-row">
+            <label>Height:</label>
+            <input type="number" id="grid-height" min="2" max="16" value="8">
+          </div>
+          <div class="config-row">
+            <label>Core Radius:</label>
+            <input type="range" id="core-radius" min="10" max="35" value="22">
+            <span id="radius-display">22</span>
+          </div>
+          <div class="config-row">
+            <label>Spacing:</label>
+            <input type="range" id="core-spacing" min="40" max="80" value="60">
+            <span id="spacing-display">60</span>
+          </div>
+          <div class="config-row">
+            <label>Word Size:</label>
+            <input type="number" id="word-size" min="1" max="64" value="8">
+          </div>
+          <button id="btn-apply-grid" class="action-btn small">Apply</button>
+        </div>
+
+        <div class="panel appearance">
+          <h3>Appearance</h3>
+          <div class="config-row">
+            <label>State 0 Color:</label>
+            <input type="color" id="color-state0" value="#444466">
+          </div>
+          <div class="config-row">
+            <label>State 1 Color:</label>
+            <input type="color" id="color-state1" value="#00ff88">
+          </div>
+          <div class="config-row">
+            <label>Wire Color:</label>
+            <input type="color" id="color-wire" value="#555555">
+          </div>
+          <div class="config-row">
+            <label>Active Wire:</label>
+            <input type="color" id="color-active" value="#ffaa00">
+          </div>
+          <div class="config-row">
+            <label>Background:</label>
+            <input type="color" id="color-bg" value="#1a1a2e">
+          </div>
+          <div class="toggle-row">
+            <label>Show X Wires</label>
+            <input type="checkbox" id="show-x-wires" checked>
+          </div>
+          <div class="toggle-row">
+            <label>Show Y Wires</label>
+            <input type="checkbox" id="show-y-wires" checked>
+          </div>
+          <div class="toggle-row">
+            <label>Show Sense Wire</label>
+            <input type="checkbox" id="show-sense" checked>
+          </div>
+          <div class="toggle-row">
+            <label>Show Labels</label>
+            <input type="checkbox" id="show-labels" checked>
+          </div>
+        </div>
+
+        <div class="panel memory-contents">
+          <h3>Memory Editor</h3>
+          <div class="memory-display">
+            <div class="memory-row editable">
+              <span class="label">Binary:</span>
+              <input type="text" id="binary-input" class="value-input" pattern="[01]*" placeholder="Enter binary...">
+            </div>
+            <div class="memory-row editable">
+              <span class="label">Hex:</span>
+              <input type="text" id="hex-input" class="value-input" placeholder="Enter hex...">
+            </div>
+            <div class="memory-row editable">
+              <span class="label">Decimal:</span>
+              <input type="text" id="decimal-input" class="value-input" placeholder="Enter decimal...">
+            </div>
+          </div>
+          <div class="word-display">
+            <h4>Words (<span id="word-count">1</span>)</h4>
+            <div id="word-breakdown" class="word-breakdown"></div>
+          </div>
+        </div>
+
+        <div class="panel io-panel">
+          <h3>Import / Export</h3>
+          <div class="io-buttons">
+            <button id="btn-export" class="action-btn">Export JSON</button>
+            <button id="btn-import" class="action-btn">Import JSON</button>
+            <input type="file" id="import-file" accept=".json" class="hidden">
+          </div>
+          <div class="io-display">
+            <textarea id="io-textarea" placeholder="Paste JSON here or click Export to generate..."></textarea>
+          </div>
+        </div>
+
+        <div class="panel operation-log">
+          <h3>Operation Log</h3>
+          <div id="log-entries" class="log-entries"></div>
+        </div>
+
+        <div class="panel physics-info">
+          <h3>Physics Explanation</h3>
+          <div id="physics-text" class="physics-text">
+            <p>Click on a core to perform the selected operation.</p>
+            <p><strong>Read:</strong> Destructive read - the bit value is returned but cleared to 0.</p>
+            <p><strong>Write 1:</strong> Apply coincident current to flip core to 1.</p>
+            <p><strong>Write 0:</strong> Apply inhibit current to prevent flip, keeping core at 0.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <p>Ferrite core memory was used from the 1950s through the 1970s. Each tiny toroidal core stores one bit via clockwise or counter-clockwise magnetization.</p>
+    </footer>
+  </div>
+
+  <script src="src/core-memory.js"></script>
+  <script src="src/app.js"></script>
+</body>
+</html>
