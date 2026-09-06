@@ -2,8 +2,6 @@
 
 Interactive web-based simulation of magnetic core memory technology used in computers from the 1950s through the 1970s.
 
-![Simulator Screenshot](docs/screenshot.png)
-
 ## Overview
 
 This simulator recreates the physics and operation of ferrite core memory - the dominant form of random-access memory before semiconductor RAM. Each tiny toroidal ferrite core stores one bit via clockwise or counter-clockwise magnetization. The simulator models coincident-current addressing, destructive read operations, inhibit lines for selective writing, and sense wire detection.
